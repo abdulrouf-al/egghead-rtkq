@@ -1,19 +1,21 @@
-import { useSelector } from "react-redux";
 import { useParams } from "react-router";
-import { getServiceById } from "./servicesSlice";
-
+import { Loader } from "../../components/Loader";
+import { useGetServiceQuery } from "../../store/apiSlice";
 export function ServiceDetailsPage() {
   const { serviceId } = useParams();
-  const service = useSelector((state) => getServiceById(state, serviceId));
+  const { data: service, isLoading, error } = useGetServiceQuery(serviceId);
   return (
     <div className="page">
-      {!service ? (
+      {isLoading ? (
+        <Loader />
+      ) : error ? (
         <>
-          <h1>Service Details</h1>
+          <h1>
+            {error.status} couldn't find Service: {serviceId}
+          </h1>
           <p>Could not find service {serviceId}</p>{" "}
         </>
-      ) : null}
-      {service ? (
+      ) : (
         <>
           <h1>{service.title} Service</h1>
           <div className="card">
@@ -41,7 +43,7 @@ export function ServiceDetailsPage() {
             </div>
           </div>
         </>
-      ) : null}
+      )}
     </div>
   );
 }

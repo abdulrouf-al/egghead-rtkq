@@ -12,7 +12,10 @@ if (import.meta.env.DEV) {
     onUnhandledRequest: "bypass",
   });
 }
-
+//this will kik off the getDogs query ahead just when entering the site(app) - needed in mobile apps
+/* store.dispatch(api.endpoints.getDogs.initiate());
+store.dispatch(api.endpoints.getServices.initiate());
+store.dispatch(api.endpoints.getService.initiate("a098239|")); */
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>

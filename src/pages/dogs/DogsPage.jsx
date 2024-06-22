@@ -1,23 +1,23 @@
-import { useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { removeDog, addDog, getDogs } from "./dogsSlice";
+import { useRef } from "react";
+import { useSelector } from "react-redux";
 import { LuckyDog } from "./LuckyDog";
+import {
+  useGetDogsQuery,
+  useAddDogMutation,
+  useRemoveDogMutation,
+} from "../../store/apiSlice";
 
 export function DogsPage() {
   const dialogRef = useRef();
-  const dispatch = useDispatch();
-  const dogsReady = useSelector((state) => state.dogs.dogsReady);
-  const myDogs = useSelector((state) => state.dogs.myDogs);
   const luckyDog = useSelector((state) => state.dogs.luckyDog);
 
-  useEffect(() => {
-    if (dogsReady) return;
-    dispatch(getDogs());
-  }, [dispatch, dogsReady]);
+  const { data: myDogs, isLoading, refetch } = useGetDogsQuery();
+  const [addDog] = useAddDogMutation();
+  const [removeDog] = useRemoveDogMutation();
 
   const handleDeleteDog = (e, dog) => {
     e.preventDefault();
-    dispatch(removeDog(dog.id));
+    removeDog(dog.id);
   };
 
   const handleNewDog = (e) => {
@@ -27,9 +27,18 @@ export function DogsPage() {
     const data = Object.fromEntries(formData);
 
     // add the dog, then refetch the list
-    dispatch(addDog(data)).then(() => {
+    /* dispatch(addDog(data)).then(() => {
       dispatch(getDogs());
-    });
+    }); */
+    addDog(data);
+    // replaced with tagTypes: ["services", "dogs"],
+    /*   .unwrap() // unwrap gives us access to the promise that's being used to fetch the data when comes back we can deal with data directly or kick of an action like refetch and we can handling the catch
+      .then((data) => {
+        refetch();
+      })
+      .catch((err) => {
+        console.log(err);
+      }); */
 
     // close immediately we don't need to wait
     dialogRef.current?.close();
@@ -42,46 +51,47 @@ export function DogsPage() {
         list of <i>all</i> of your dogs, so that we can provide them with the
         best services possible.
       </p>
-      {Object.values(myDogs).length > 0 && (
+      {!isLoading && Object.values(myDogs).length > 0 && (
         <>
           <p>Choose the lucky dog that will be groomed next.</p>
           <LuckyDog />
         </>
       )}
-      {Object.values(myDogs).map((dog) => {
-        return (
-          <div
-            key={dog.id}
-            className={
-              "card closable" + (luckyDog === dog.id ? " luckyDog" : "")
-            }
-          >
-            <i className="dogImg">🐶</i>
-            <div style={{ flex: 1 }}>
-              <div className="dogCardHeader">
-                <h3 className="dogName">{dog.name}</h3>
-                <button
-                  className="deleteDog"
-                  aria-label={`Remove ${dog.name} from your dog list`}
-                  onClick={(e) => handleDeleteDog(e, dog)}
-                >
-                  x
-                </button>
-              </div>
-              <div className="cardContents">
-                <dl>
-                  <dt>Size:</dt>
-                  <dd>{dog.size}</dd>
-                  <dt>Age:</dt>
-                  <dd>{dog.age}</dd>
-                  <dt>Breed:</dt>
-                  <dd>{dog.breed}</dd>
-                </dl>
+      {!isLoading &&
+        Object.values(myDogs).map((dog) => {
+          return (
+            <div
+              key={dog.id}
+              className={
+                "card closable" + (luckyDog === dog.id ? " luckyDog" : "")
+              }
+            >
+              <i className="dogImg">🐶</i>
+              <div style={{ flex: 1 }}>
+                <div className="dogCardHeader">
+                  <h3 className="dogName">{dog.name}</h3>
+                  <button
+                    className="deleteDog"
+                    aria-label={`Remove ${dog.name} from your dog list`}
+                    onClick={(e) => handleDeleteDog(e, dog)}
+                  >
+                    x
+                  </button>
+                </div>
+                <div className="cardContents">
+                  <dl>
+                    <dt>Size:</dt>
+                    <dd>{dog.size}</dd>
+                    <dt>Age:</dt>
+                    <dd>{dog.age}</dd>
+                    <dt>Breed:</dt>
+                    <dd>{dog.breed}</dd>
+                  </dl>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
       <dialog ref={dialogRef} className="dogDialog">
         <form onSubmit={handleNewDog} className="dogsForm">
           <div className="grid">
